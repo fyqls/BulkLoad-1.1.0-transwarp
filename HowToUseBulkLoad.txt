@@ -1,0 +1,37 @@
+作用：实现向HBase中加载大批量数据
+原理：采用MapReduce作业，将数据以HBase内部的组织格式输出成文件，然后将数据文件加载到已运行的集群中。（注：就是生成HFile，然后加载到HBase中。）
+
+使用实例：
+
+这里以阿尔卡特移动电话数据为例说明bulkload加载大数据的过程。
+
+1、环境准备过程
+   1）拷贝当前集群的配置hbase-site.xml到conf目录下
+   2）编译:mvn clean package
+
+2、数据准备过程
+   1）加载数据到hdfs
+      hdfs dfs –put ./datafile /user/root/data/mobile_flow_record_dir
+   2）创建hive外表（用户需指定各字段名称）
+      命令：hive –t –h localhost –f create_table.sql
+   3）生成优化的splitKeySpec，产生的splitKeySpec会自动写入配置文件conf.properties
+      命令：gen_rowkeys.sh
+
+3、数据加载过程
+   1）设置配置文件conf.properties
+      重要参数说明如下：
+	tableName=mobile_flow_record（hbase 表名称）
+	inputDir=hdfs://has/user/root/data/mobile_flow_record_dir（原始数据存放位置，即步骤2.1中指定的路径）
+	fieldDelimiter=,（原始文件中的字段分隔符）
+	outputDir=hdfs://has/user/root/output（hifle数据存放位置）
+	inputFormat=Text
+	mapred_min_split_size=1
+	isRemote=false（是否允许从其他hdfs文件系统load数据）
+	encoding=UTF-8（编码方式）
+	internalFieldDelimiter=~（hbase数据表中columns之间的分隔符？？？）
+	textRecordSpec= （原始文件记录字段，与2.2中创建外表时指定的字段名一致）
+	rowSpec=  （这里给出所要创建的hbase table 的 rowKey 字段组合以及column family和column组合）
+	splitKeySpec=  （注意：这个参数内容用户即可自行制定，也可以通过2.2和2.3步骤自动产生）
+    2）	运行加载工具
+        命令：run.sh
+

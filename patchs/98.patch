@@ -1,0 +1,1286 @@
+diff -urN OldGeneralDataCopy/conf/core-site.xml NewGeneralDataCopy/conf/core-site.xml
+--- OldGeneralDataCopy/conf/core-site.xml	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/core-site.xml	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,88 @@
++<?xml version="1.0"?>
++<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
++
++<!-- Licensed to the Apache Software Foundation (ASF) under one or more       -->
++<!-- contributor license agreements.  See the NOTICE file distributed with    -->
++<!-- this work for additional information regarding copyright ownership.      -->
++<!-- The ASF licenses this file to You under the Apache License, Version 2.0  -->
++<!-- (the "License"); you may not use this file except in compliance with     -->
++<!-- the License.  You may obtain a copy of the License at                    -->
++<!--                                                                          -->
++<!--     http://www.apache.org/licenses/LICENSE-2.0                           -->
++<!--                                                                          -->
++<!-- Unless required by applicable law or agreed to in writing, software      -->
++<!-- distributed under the License is distributed on an "AS IS" BASIS,        -->
++<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. -->
++<!-- See the License for the specific language governing permissions and      -->
++<!-- limitations under the License.                                           -->
++
++<configuration>
++  <!-- URI of NN. Fully qualified. No IP.-->
++  <property>
++    <name>fs.defaultFS</name>
++    <value>hdfs://ha</value>
++  </property>
++
++  <property>
++    <name>net.topology.script.file.name</name>
++    <value>/usr/lib/transwarp/scripts/rack_map.sh</value>
++  </property>
++
++  <property>
++    <name>net.topology.script.number.args</name>
++    <value>100</value>
++  </property>
++
++
++  <property>
++    <name>hadoop.proxyuser.hive.hosts</name>
++    <value>*</value>
++  </property>
++  <property>
++    <name>hadoop.proxyuser.hive.groups</name>
++    <value>*</value>
++  </property>
++  <property>
++    <name>hadoop.proxyuser.hue.hosts</name>
++    <value>*</value>
++  </property>
++  <property>
++    <name>hadoop.proxyuser.hue.groups</name>
++    <value>*</value>
++  </property>
++  <property>
++    <name>hadoop.proxyuser.httpfs.hosts</name>
++    <value>*</value>
++  </property>
++  <property>
++    <name>hadoop.proxyuser.httpfs.groups</name>
++    <value>*</value>
++  </property>
++  <property>
++    <name>hadoop.proxyuser.oozie.hosts</name>
++    <value>*</value>
++  </property>
++  <property>
++    <name>hadoop.proxyuser.oozie.groups</name>
++    <value>*</value>
++  </property>
++
++
++  <property>
++    <name>default.heap.size</name>
++    <value>4096</value>
++  </property>
++  <property>
++    <name>io.bytes.per.checksum</name>
++    <value>4096</value>
++  </property>
++  <property>
++    <name>io.compression.codecs</name>
++    <value>org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.BZip2Codec,org.apache.hadoop.io.compress.DeflateCodec,org.apache.hadoop.io.compress.SnappyCodec</value>
++  </property>
++  <property>
++    <name>io.file.buffer.size</name>
++    <value>65536</value>
++  </property>
++
++</configuration>
+diff -urN OldGeneralDataCopy/conf/hadoop-env.sh NewGeneralDataCopy/conf/hadoop-env.sh
+--- OldGeneralDataCopy/conf/hadoop-env.sh	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/hadoop-env.sh	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,71 @@
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# Set Hadoop-specific environment variables here.
++
++# The only required environment variable is JAVA_HOME.  All others are
++# optional.  When running a distributed configuration it is best to
++# set JAVA_HOME in this file, so that it is correctly defined on
++# remote nodes.
++
++# The java implementation to use.
++export JAVA_HOME=${JAVA_HOME}
++
++# The jsvc implementation to use. Jsvc is required to run secure datanodes.
++#export JSVC_HOME=${JSVC_HOME}
++
++export HADOOP_CONF_DIR=/etc/yarn1/conf:/etc/hdfs1/conf:/etc/hbase/conf
++
++# Extra Java CLASSPATH elements.  Automatically insert capacity-scheduler.
++for f in $HADOOP_HOME/contrib/capacity-scheduler/*.jar; do
++  if [ "$HADOOP_CLASSPATH" ]; then
++    export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$f
++  else
++    export HADOOP_CLASSPATH=$f
++  fi
++done
++
++# The maximum amount of heap to use, in MB. Default is 1000.
++#export HADOOP_HEAPSIZE=
++#export HADOOP_NAMENODE_INIT_HEAPSIZE=""
++
++# Extra Java runtime options.  Empty by default.
++export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true $HADOOP_CLIENT_OPTS"
++
++# Command specific options appended to HADOOP_OPTS when specified
++
++# The ZKFC does not need a large heap, and keeping it small avoids
++# any potential for long GC pauses
++export HADOOP_ZKFC_OPTS="-Xmx256m $HADOOP_ZKFC_OPTS"
++
++# The following applies to multiple commands (fs, dfs, fsck, distcp etc)
++#export HADOOP_CLIENT_OPTS="-Xmx128m $HADOOP_CLIENT_OPTS"
++#HADOOP_JAVA_PLATFORM_OPTS="-XX:-UsePerfData $HADOOP_JAVA_PLATFORM_OPTS"
++
++# On secure datanodes, user to run the datanode as after dropping privileges
++export HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER}
++
++# Where log files are stored.  $HADOOP_HOME/logs by default.
++export HADOOP_LOG_DIR=/var/log/yarn1
++
++# Where log files are stored in the secure data environment.
++export HADOOP_SECURE_DN_LOG_DIR=${HADOOP_LOG_DIR}
++
++# The directory where pid files are stored. /tmp by default.
++export HADOOP_PID_DIR=/var/run/yarn1
++export HADOOP_SECURE_DN_PID_DIR=${HADOOP_PID_DIR}
++
++# A string representing this instance of hadoop. $USER by default.
++#export HADOOP_IDENT_STRING=$USER
+diff -urN OldGeneralDataCopy/conf/hadoop-metrics2.properties NewGeneralDataCopy/conf/hadoop-metrics2.properties
+--- OldGeneralDataCopy/conf/hadoop-metrics2.properties	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/hadoop-metrics2.properties	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,42 @@
++# syntax: [prefix].[source|sink|jmx].[instance].[options]
++# See package.html for org.apache.hadoop.metrics2 for details
++
++*.sink.file.class=org.apache.hadoop.metrics2.sink.FileSink
++
++# Below are for sending metrics to Ganglia
++#
++# for Ganglia 3.0 support
++
++# *.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink30
++
++# for Ganglia 3.1 support
++*.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31
++
++*.sink.ganglia.period=60
++
++# default for supportsparse is false
++*.sink.ganglia.supportsparse=false
++
++#*.sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both
++
++*.sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40
++
++namenode.sink.ganglia.servers=172.16.0.49:8649
++
++datanode.sink.ganglia.servers=172.16.0.49:8649
++
++jobtracker.sink.ganglia.servers=172.16.0.49:8649
++
++tasktracker.sink.ganglia.servers=172.16.0.49:8649
++
++maptask.sink.ganglia.servers=172.16.0.49:8649
++
++reducetask.sink.ganglia.servers=172.16.0.49:8649
++
++dfs.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
++dfs.period=60
++dfs.servers=172.16.0.49:8649
++
++mapred.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
++mapred.period=60
++mapred.servers=172.16.0.49:8649
+diff -urN OldGeneralDataCopy/conf/hdfs-site.xml NewGeneralDataCopy/conf/hdfs-site.xml
+--- OldGeneralDataCopy/conf/hdfs-site.xml	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/hdfs-site.xml	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,166 @@
++<?xml version="1.0"?>
++<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
++
++<!-- Licensed to the Apache Software Foundation (ASF) under one or more       -->
++<!-- contributor license agreements.  See the NOTICE file distributed with    -->
++<!-- this work for additional information regarding copyright ownership.      -->
++<!-- The ASF licenses this file to You under the Apache License, Version 2.0  -->
++<!-- (the "License"); you may not use this file except in compliance with     -->
++<!-- the License.  You may obtain a copy of the License at                    -->
++<!--                                                                          -->
++<!--     http://www.apache.org/licenses/LICENSE-2.0                           -->
++<!--                                                                          -->
++<!-- Unless required by applicable law or agreed to in writing, software      -->
++<!-- distributed under the License is distributed on an "AS IS" BASIS,        -->
++<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. -->
++<!-- See the License for the specific language governing permissions and      -->
++<!-- limitations under the License.                                           -->
++
++<configuration>
++
++  <property>
++    <name>dfs.ha.namenodes.ha</name>
++    <value>nn1,nn2</value>
++  </property>
++
++  <property>
++    <name>dfs.namenode.rpc-address.ha.nn1</name>
++    <value>transwarp-demo1:8020</value>
++  </property>
++
++  <property>
++    <name>dfs.namenode.rpc-address.ha.nn2</name>
++    <value>transwarp-demo2:8020</value>
++  </property>
++
++  <property>
++    <name>dfs.namenode.http-address.ha.nn1</name>
++    <value>transwarp-demo1:50070</value>
++  </property>
++
++  <property>
++    <name>dfs.namenode.http-address.ha.nn2</name>
++    <value>transwarp-demo2:50070</value>
++  </property>
++
++  <property>
++    <name>dfs.namenode.shared.edits.dir.ha</name>
++    <value>qjournal://transwarp-demo3:8485;transwarp-demo4:8485/ha</value>
++  </property>
++
++  <property>
++    <name>dfs.client.failover.proxy.provider.ha</name>
++    <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
++  </property>
++
++  <property>
++    <name>dfs.hosts.exclude</name>
++    <value>/etc/hdfs1/conf/exclude-list.txt</value>
++  </property>
++  <property>
++    <name>dfs.client.read.shortcircuit</name>
++    <value>true</value>
++  </property>
++  <property>
++    <name>dfs.domain.socket.path</name>
++    <value>/var/run/hdfs1/dn_socket</value>
++  </property>
++
++  <property>
++    <name>dfs.journalnode.rpc-address</name>
++    <value>0.0.0.0:8485</value>
++  </property>
++
++  <property>
++    <name>dfs.journalnode.http-address</name>
++    <value>0.0.0.0:8480</value>
++  </property>
++
++  <property>
++    <name>dfs.datanode.address</name>
++    <value>0.0.0.0:50010</value>
++  </property>
++
++  <property>
++    <name>dfs.datanode.http.address</name>
++    <value>0.0.0.0:50075</value>
++  </property>
++
++  <property>
++    <name>dfs.datanode.ipc.address</name>
++    <value>0.0.0.0:50020</value>
++  </property>
++
++  <property>
++    <name>dfs.block.local-path-access.user</name>
++    <value>root,hdfs,mapred,hbase,hive</value>
++  </property>
++  <property>
++    <name>dfs.client.socket-timeout</name>
++    <value>120000</value>
++  </property>
++  <property>
++    <name>dfs.datanode.balance.bandwidthPerSec</name>
++    <value>104857600</value>
++  </property>
++  <property>
++    <name>dfs.datanode.data.dir</name>
++    <value>/mnt/disk2/hadoop/data,/mnt/disk3/hadoop/data</value>
++  </property>
++  <property>
++    <name>dfs.datanode.data.dir.perm</name>
++    <value>755</value>
++  </property>
++  <property>
++    <name>dfs.datanode.handler.count</name>
++    <value>100</value>
++  </property>
++  <property>
++    <name>dfs.ha.automatic-failover.enabled</name>
++    <value>true</value>
++  </property>
++  <property>
++    <name>dfs.ha.fencing.methods</name>
++    <value>shell(/bin/true)</value>
++  </property>
++  <property>
++    <name>dfs.journalnode.edits.dir</name>
++    <value>/hadoop/journal</value>
++  </property>
++  <property>
++    <name>dfs.namenode.checkpoint.dir</name>
++    <value>/hadoop/namesecondary</value>
++  </property>
++  <property>
++    <name>dfs.namenode.handler.count</name>
++    <value>100</value>
++  </property>
++  <property>
++    <name>dfs.namenode.name.dir</name>
++    <value>/hadoop/hadoop_image,/hadoop/namenode_dir</value>
++  </property>
++  <property>
++    <name>dfs.nameservices</name>
++    <value>ha</value>
++  </property>
++  <property>
++    <name>dfs.permissions.superusergroup</name>
++    <value>hbase</value>
++  </property>
++  <property>
++    <name>dfs.support.append</name>
++    <value>true</value>
++  </property>
++  <property>
++    <name>dfs.webhdfs.enabled</name>
++    <value>true</value>
++  </property>
++  <property>
++    <name>dfs.datanode.max.transfer.threads</name>
++    <value>8192</value>
++  </property>
++  <property>
++    <name>license.zookeeper.quorum</name>
++    <value>transwarp-demo1:2291,transwarp-demo3:2291,transwarp-demo2:2291</value>
++  </property>
++</configuration>
+diff -urN OldGeneralDataCopy/conf/log4j.properties NewGeneralDataCopy/conf/log4j.properties
+--- OldGeneralDataCopy/conf/log4j.properties	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/log4j.properties	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,212 @@
++# Copyright 2011 The Apache Software Foundation
++# 
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# Define some default values that can be overridden by system properties
++hadoop.root.logger=INFO,console
++hadoop.log.dir=.
++hadoop.log.file=hadoop.log
++
++# Define the root logger to the system property "hadoop.root.logger".
++log4j.rootLogger=${hadoop.root.logger}, EventCounter
++
++# Logging Threshold
++log4j.threshold=ALL
++
++# Null Appender
++log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender
++
++#
++# Rolling File Appender - cap space usage at 5gb.
++#
++hadoop.log.maxfilesize=256MB
++hadoop.log.maxbackupindex=20
++log4j.appender.RFA=org.apache.log4j.RollingFileAppender
++log4j.appender.RFA.File=${hadoop.log.dir}/${hadoop.log.file}
++
++log4j.appender.RFA.MaxFileSize=${hadoop.log.maxfilesize}
++log4j.appender.RFA.MaxBackupIndex=${hadoop.log.maxbackupindex}
++
++log4j.appender.RFA.layout=org.apache.log4j.PatternLayout
++
++# Pattern format: Date LogLevel LoggerName LogMessage
++log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
++# Debugging Pattern format
++#log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
++
++
++#
++# Daily Rolling File Appender
++#
++
++log4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender
++log4j.appender.DRFA.File=${hadoop.log.dir}/${hadoop.log.file}
++
++# Rollver at midnight
++log4j.appender.DRFA.DatePattern=.yyyy-MM-dd
++
++# 30-day backup
++#log4j.appender.DRFA.MaxBackupIndex=30
++log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout
++
++# Pattern format: Date LogLevel LoggerName LogMessage
++log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
++# Debugging Pattern format
++#log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
++
++
++#
++# console
++# Add "console" to rootlogger above if you want to use this 
++#
++
++log4j.appender.console=org.apache.log4j.ConsoleAppender
++log4j.appender.console.target=System.err
++log4j.appender.console.layout=org.apache.log4j.PatternLayout
++log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
++
++#
++# TaskLog Appender
++#
++
++#Default values
++hadoop.tasklog.taskid=null
++hadoop.tasklog.iscleanup=false
++hadoop.tasklog.noKeepSplits=4
++hadoop.tasklog.totalLogFileSize=100
++hadoop.tasklog.purgeLogSplits=true
++hadoop.tasklog.logsRetainHours=12
++
++log4j.appender.TLA=org.apache.hadoop.mapred.TaskLogAppender
++log4j.appender.TLA.taskId=${hadoop.tasklog.taskid}
++log4j.appender.TLA.isCleanup=${hadoop.tasklog.iscleanup}
++log4j.appender.TLA.totalLogFileSize=${hadoop.tasklog.totalLogFileSize}
++
++log4j.appender.TLA.layout=org.apache.log4j.PatternLayout
++log4j.appender.TLA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
++
++#
++#Security appender
++#
++hadoop.security.logger=INFO,NullAppender
++hadoop.security.log.maxfilesize=256MB
++hadoop.security.log.maxbackupindex=20
++log4j.category.SecurityLogger=${hadoop.security.logger}
++hadoop.security.log.file=SecurityAuth-${user.name}.audit
++log4j.appender.RFAS=org.apache.log4j.RollingFileAppender 
++log4j.appender.RFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}
++log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout
++log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
++log4j.appender.RFAS.MaxFileSize=${hadoop.security.log.maxfilesize}
++log4j.appender.RFAS.MaxBackupIndex=${hadoop.security.log.maxbackupindex}
++
++#
++# Daily Rolling Security appender
++#
++log4j.appender.DRFAS=org.apache.log4j.DailyRollingFileAppender 
++log4j.appender.DRFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}
++log4j.appender.DRFAS.layout=org.apache.log4j.PatternLayout
++log4j.appender.DRFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
++log4j.appender.DRFAS.DatePattern=.yyyy-MM-dd
++
++#
++# hdfs audit logging
++#
++hdfs.audit.logger=INFO,NullAppender
++hdfs.audit.log.maxfilesize=256MB
++hdfs.audit.log.maxbackupindex=20
++log4j.logger.org.apache.hadoop.hdfs.server.namenode.FSNamesystem.audit=${hdfs.audit.logger}
++log4j.additivity.org.apache.hadoop.hdfs.server.namenode.FSNamesystem.audit=false
++log4j.appender.RFAAUDIT=org.apache.log4j.RollingFileAppender
++log4j.appender.RFAAUDIT.File=${hadoop.log.dir}/hdfs-audit.log
++log4j.appender.RFAAUDIT.layout=org.apache.log4j.PatternLayout
++log4j.appender.RFAAUDIT.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n
++log4j.appender.RFAAUDIT.MaxFileSize=${hdfs.audit.log.maxfilesize}
++log4j.appender.RFAAUDIT.MaxBackupIndex=${hdfs.audit.log.maxbackupindex}
++
++#
++# mapred audit logging
++#
++mapred.audit.logger=INFO,NullAppender
++mapred.audit.log.maxfilesize=256MB
++mapred.audit.log.maxbackupindex=20
++log4j.logger.org.apache.hadoop.mapred.AuditLogger=${mapred.audit.logger}
++log4j.additivity.org.apache.hadoop.mapred.AuditLogger=false
++log4j.appender.MRAUDIT=org.apache.log4j.RollingFileAppender
++log4j.appender.MRAUDIT.File=${hadoop.log.dir}/mapred-audit.log
++log4j.appender.MRAUDIT.layout=org.apache.log4j.PatternLayout
++log4j.appender.MRAUDIT.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n
++log4j.appender.MRAUDIT.MaxFileSize=${mapred.audit.log.maxfilesize}
++log4j.appender.MRAUDIT.MaxBackupIndex=${mapred.audit.log.maxbackupindex}
++
++# Custom Logging levels
++
++#log4j.logger.org.apache.hadoop.mapred.JobTracker=DEBUG
++#log4j.logger.org.apache.hadoop.mapred.TaskTracker=DEBUG
++#log4j.logger.org.apache.hadoop.hdfs.server.namenode.FSNamesystem.audit=DEBUG
++
++# Jets3t library
++log4j.logger.org.jets3t.service.impl.rest.httpclient.RestS3Service=ERROR
++
++#
++# Event Counter Appender
++# Sends counts of logging messages at different severity levels to Hadoop Metrics.
++#
++log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
++
++#
++# Job Summary Appender 
++#
++# Use following logger to send summary to separate file defined by 
++# hadoop.mapreduce.jobsummary.log.file :
++# hadoop.mapreduce.jobsummary.logger=INFO,JSA
++# 
++hadoop.mapreduce.jobsummary.logger=${hadoop.root.logger}
++hadoop.mapreduce.jobsummary.log.file=hadoop-mapreduce.jobsummary.log
++hadoop.mapreduce.jobsummary.log.maxfilesize=256MB
++hadoop.mapreduce.jobsummary.log.maxbackupindex=20
++log4j.appender.JSA=org.apache.log4j.RollingFileAppender
++log4j.appender.JSA.File=${hadoop.log.dir}/${hadoop.mapreduce.jobsummary.log.file}
++log4j.appender.JSA.MaxFileSize=${hadoop.mapreduce.jobsummary.log.maxfilesize}
++log4j.appender.JSA.MaxBackupIndex=${hadoop.mapreduce.jobsummary.log.maxbackupindex}
++log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
++log4j.appender.JSA.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
++log4j.logger.org.apache.hadoop.mapred.JobInProgress$JobSummary=${hadoop.mapreduce.jobsummary.logger}
++log4j.additivity.org.apache.hadoop.mapred.JobInProgress$JobSummary=false
++
++#
++# Yarn ResourceManager Application Summary Log 
++#
++# Set the ResourceManager summary log filename
++#yarn.server.resourcemanager.appsummary.log.file=rm-appsummary.log
++# Set the ResourceManager summary log level and appender
++#yarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY
++
++# Appender for ResourceManager Application Summary Log
++# Requires the following properties to be set
++#    - hadoop.log.dir (Hadoop Log directory)
++#    - yarn.server.resourcemanager.appsummary.log.file (resource manager app summary log filename)
++#    - yarn.server.resourcemanager.appsummary.logger (resource manager app summary log level and appender)
++
++#log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=${yarn.server.resourcemanager.appsummary.logger}
++#log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=false
++#log4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender
++#log4j.appender.RMSUMMARY.File=${hadoop.log.dir}/${yarn.server.resourcemanager.appsummary.log.file}
++#log4j.appender.RMSUMMARY.MaxFileSize=256MB
++#log4j.appender.RMSUMMARY.MaxBackupIndex=20
++#log4j.appender.RMSUMMARY.layout=org.apache.log4j.PatternLayout
++#log4j.appender.RMSUMMARY.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n
+diff -urN OldGeneralDataCopy/conf/mapred-env.sh NewGeneralDataCopy/conf/mapred-env.sh
+--- OldGeneralDataCopy/conf/mapred-env.sh	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/mapred-env.sh	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,30 @@
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# export JAVA_HOME=/home/y/libexec/jdk1.6.0/
++
++export HADOOP_JOB_HISTORYSERVER_HEAPSIZE=1000
++
++export HADOOP_MAPRED_ROOT_LOGGER=INFO,RFA
++
++#export HADOOP_JOB_HISTORYSERVER_OPTS=
++export HADOOP_MAPRED_LOG_DIR=/var/log/yarn1
++# Where log files are stored.  $HADOOP_MAPRED_HOME/logs by default.
++#export HADOOP_JHS_LOGGER=INFO,RFA # Hadoop JobSummary logger.
++export HADOOP_MAPRED_PID_DIR=/var/run/yarn1 
++# The pid files are stored. /tmp by default.
++export HADOOP_MAPRED_IDENT_STRING=yarn
++#A string representing this instance of hadoop. $USER by default
++#export HADOOP_MAPRED_NICENESS= #The scheduling priority for daemons. Defaults to 0.
+diff -urN OldGeneralDataCopy/conf/mapred-site.xml NewGeneralDataCopy/conf/mapred-site.xml
+--- OldGeneralDataCopy/conf/mapred-site.xml	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/mapred-site.xml	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,61 @@
++<?xml version="1.0"?>
++<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
++
++<!-- Licensed to the Apache Software Foundation (ASF) under one or more       -->
++<!-- contributor license agreements.  See the NOTICE file distributed with    -->
++<!-- this work for additional information regarding copyright ownership.      -->
++<!-- The ASF licenses this file to You under the Apache License, Version 2.0  -->
++<!-- (the "License"); you may not use this file except in compliance with     -->
++<!-- the License.  You may obtain a copy of the License at                    -->
++<!--                                                                          -->
++<!--     http://www.apache.org/licenses/LICENSE-2.0                           -->
++<!--                                                                          -->
++<!-- Unless required by applicable law or agreed to in writing, software      -->
++<!-- distributed under the License is distributed on an "AS IS" BASIS,        -->
++<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. -->
++<!-- See the License for the specific language governing permissions and      -->
++<!-- limitations under the License.                                           -->
++
++<configuration>
++  <property>
++    <name>mapreduce.jobhistory.address</name>
++    <value>transwarp-demo1:10020</value>
++  </property>
++
++  <property>
++    <name>mapreduce.jobhistory.webapp.address</name>
++    <value>transwarp-demo1:19888</value>
++  </property>
++  <property>
++    <name>mapred.child.java.opts</name>
++    <value>-Xmx2048m -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=1 -XX:ParallelGCThreads=1</value>
++  </property>
++
++
++
++  <property>
++    <name>mapreduce.framework.name</name>
++    <value>yarn</value>
++  </property>
++  <property>
++    <name>mapreduce.shuffle.port</name>
++    <value>13562</value>
++  </property>
++  <property>
++    <name>raid.distraid.max.files</name>
++    <value>300</value>
++  </property>
++  <property>
++    <name>raid.distraid.max.jobs</name>
++    <value>10</value>
++  </property>
++  <property>
++    <name>raidnode.files.fix.per.job</name>
++    <value>500</value>
++  </property>
++  <property>
++    <name>yarn.app.mapreduce.am.staging-dir</name>
++    <value>/yarn1/user</value>
++  </property>
++
++</configuration>
+diff -urN OldGeneralDataCopy/conf/taskcontroller.cfg NewGeneralDataCopy/conf/taskcontroller.cfg
+--- OldGeneralDataCopy/conf/taskcontroller.cfg	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/taskcontroller.cfg	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,4 @@
++mapred.local.dir=#configured value of mapred.local.dir. It can be a list of comma separated paths.
++hadoop.log.dir=#configured value of hadoop.log.dir.
++mapred.tasktracker.tasks.sleeptime-before-sigkill=#sleep time before sig kill is to be sent to process group after sigterm is sent. Should be in seconds
++mapreduce.tasktracker.group=#configured value of mapreduce.tasktracker.group.
+diff -urN OldGeneralDataCopy/conf/yarn-env.sh NewGeneralDataCopy/conf/yarn-env.sh
+--- OldGeneralDataCopy/conf/yarn-env.sh	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/yarn-env.sh	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,81 @@
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# User for YARN daemons
++export HADOOP_YARN_USER=${HADOOP_YARN_USER:-yarn}
++
++# resolve links - $0 may be a softlink
++export YARN_CONF_DIR=/etc/yarn1/conf
++export YARN_LOG_DIR=/var/log/yarn1
++export YARN_PID_DIR=/var/run/yarn1
++export HADOOP_CONF_DIR=/etc/hdfs1/conf
++
++# some Java parameters
++# export JAVA_HOME=/home/y/libexec/jdk1.6.0/
++if [ "$JAVA_HOME" != "" ]; then
++  #echo "run java in $JAVA_HOME"
++  JAVA_HOME=$JAVA_HOME
++fi
++  
++if [ "$JAVA_HOME" = "" ]; then
++  echo "Error: JAVA_HOME is not set."
++  exit 1
++fi
++
++JAVA=$JAVA_HOME/bin/java
++JAVA_HEAP_MAX=-Xmx1000m 
++
++# check envvars which might override default args
++if [ "$YARN_HEAPSIZE" != "" ]; then
++  #echo "run with heapsize $YARN_HEAPSIZE"
++  JAVA_HEAP_MAX="-Xmx""$YARN_HEAPSIZE""m"
++  #echo $JAVA_HEAP_MAX
++fi
++
++# so that filenames w/ spaces are handled correctly in loops below
++IFS=
++
++
++# default log directory & file
++if [ "$YARN_LOG_DIR" = "" ]; then
++  YARN_LOG_DIR="$YARN_HOME/logs"
++fi
++if [ "$YARN_LOGFILE" = "" ]; then
++  YARN_LOGFILE='yarn.log'
++fi
++
++# default policy file for service-level authorization
++if [ "$YARN_POLICYFILE" = "" ]; then
++  YARN_POLICYFILE="hadoop-policy.xml"
++fi
++
++# restore ordinary behaviour
++unset IFS
++
++
++YARN_OPTS="$YARN_OPTS -Dhadoop.log.dir=$YARN_LOG_DIR"
++YARN_OPTS="$YARN_OPTS -Dyarn.log.dir=$YARN_LOG_DIR"
++YARN_OPTS="$YARN_OPTS -Dhadoop.log.file=$YARN_LOGFILE"
++YARN_OPTS="$YARN_OPTS -Dyarn.log.file=$YARN_LOGFILE"
++YARN_OPTS="$YARN_OPTS -Dyarn.home.dir=$YARN_COMMON_HOME"
++YARN_OPTS="$YARN_OPTS -Dyarn.id.str=$YARN_IDENT_STRING"
++YARN_OPTS="$YARN_OPTS -Dhadoop.root.logger=${YARN_ROOT_LOGGER:-INFO,console}"
++YARN_OPTS="$YARN_OPTS -Dyarn.root.logger=${YARN_ROOT_LOGGER:-INFO,console}"
++if [ "x$JAVA_LIBRARY_PATH" != "x" ]; then
++  YARN_OPTS="$YARN_OPTS -Djava.library.path=$JAVA_LIBRARY_PATH"
++fi  
++YARN_OPTS="$YARN_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
++
++
+diff -urN OldGeneralDataCopy/conf/yarn-site.xml NewGeneralDataCopy/conf/yarn-site.xml
+--- OldGeneralDataCopy/conf/yarn-site.xml	1970-01-01 08:00:00.000000000 +0800
++++ NewGeneralDataCopy/conf/yarn-site.xml	2014-10-19 12:00:49.952883069 +0800
+@@ -0,0 +1,104 @@
++<?xml version="1.0"?>
++<!--
++  Licensed to the Apache Software Foundation (ASF) under one or more
++  contributor license agreements.  See the NOTICE file distributed with
++  this work for additional information regarding copyright ownership.
++  The ASF licenses this file to You under the Apache License, Version 2.0
++  (the "License"); you may not use this file except in compliance with
++  the License.  You may obtain a copy of the License at
++
++      http://www.apache.org/licenses/LICENSE-2.0
++
++  Unless required by applicable law or agreed to in writing, software
++  distributed under the License is distributed on an "AS IS" BASIS,
++  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++  See the License for the specific language governing permissions and
++  limitations under the License.
++-->
++<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
++
++<configuration>
++  <property>
++    <name>yarn.resourcemanager.address</name>
++    <value>transwarp-demo1:8032</value>
++  </property>
++  <property>
++    <name>yarn.resourcemanager.resource-tracker.address</name>
++    <value>transwarp-demo1:8031</value>
++  </property>
++  <property>
++    <name>yarn.resourcemanager.scheduler.address</name>
++    <value>transwarp-demo1:8030</value>
++  </property>
++  <property>
++    <name>yarn.resourcemanager.admin.address</name>
++    <value>transwarp-demo1:8033</value>
++  </property>
++  <property>
++    <name>yarn.resourcemanager.webapp.address</name>
++    <value>transwarp-demo1:8088</value>
++  </property>
++  <property>
++    <name>yarn.log.server.url</name>
++    <value>http://transwarp-demo1:19888</value>
++  </property>
++
++  <property>
++    <name>yarn.resourcemanager.scheduler.class</name>
++    <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
++  </property>
++
++  <property>
++    <name>yarn.application.classpath</name>
++    <value>$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*,$YARN_HOME/*,$YARN_HOME/lib/*</value>
++  </property>
++  <property>
++    <name>yarn.log-aggregation-enable</name>
++    <value>true</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.aux-services</name>
++    <value>mapreduce_shuffle</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
++    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.local-dirs</name>
++    <value>/mnt/disk1/hadoop/yarn/local,/mnt/disk2/hadoop/yarn/local,/mnt/disk3/hadoop/yarn/local</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.log-dirs</name>
++    <value>/mnt/disk1/hadoop/yarn/logs,/mnt/disk2/hadoop/yarn/logs,/mnt/disk3/hadoop/yarn/logs</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.pmem-check-enabled</name>
++    <value>false</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.remote-app-log-dir</name>
++    <value>/yarn1/var/log/hadoop-yarn/apps</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.resource.cpu-vcores</name>
++    <value>32</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.resource.memory-mb</name>
++    <value>32160</value>
++  </property>
++  <property>
++    <name>yarn.nodemanager.vmem-check-enabled</name>
++    <value>false</value>
++  </property>
++  <property>
++    <name>yarn.scheduler.maximum-allocation-mb</name>
++    <value>98304</value>
++  </property>
++  <property>
++    <name>yarn.scheduler.maximum-allocation-vcores</name>
++    <value>96</value>
++  </property>
++
++</configuration>
+diff -urN OldGeneralDataCopy/pom.xml NewGeneralDataCopy/pom.xml
+--- OldGeneralDataCopy/pom.xml	2014-10-19 11:50:13.644911438 +0800
++++ NewGeneralDataCopy/pom.xml	2014-10-19 12:00:49.864883073 +0800
+@@ -13,6 +13,7 @@
+   <properties>
+     <!-- Dependencies -->
+     <transwarp.version>2.2.0-transwarp</transwarp.version>
++    <hbase.version>0.98.6-transwarp</hbase.version>
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     <test.output.tofile>true</test.output.tofile>
+     <surefire.timeout>900</surefire.timeout>
+@@ -56,8 +57,18 @@
+   <dependencies>
+     <dependency>
+       <groupId>org.apache.hbase</groupId>
+-      <artifactId>hbase</artifactId>
+-      <version>0.94.11-transwarp</version>
++      <artifactId>hbase-common</artifactId>
++      <version>${hbase.version}</version>
++    </dependency>
++    <dependency>
++      <groupId>org.apache.hbase</groupId>
++      <artifactId>hbase-server</artifactId>
++      <version>${hbase.version}</version>
++    </dependency>
++    <dependency>
++      <groupId>org.apache.hbase</groupId>
++      <artifactId>hbase-client</artifactId>
++      <version>${hbase.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+diff -urN OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BConstants.java NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BConstants.java
+--- OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BConstants.java	2014-10-19 11:50:13.344911451 +0800
++++ NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BConstants.java	2014-10-19 12:00:49.956883069 +0800
+@@ -6,8 +6,8 @@
+ import org.apache.hadoop.hbase.HConstants;
+ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
+ import org.apache.hadoop.hbase.io.hfile.HFile;
+-import org.apache.hadoop.hbase.io.hfile.Compression.Algorithm;
+-import org.apache.hadoop.hbase.regionserver.StoreFile.BloomType;
++import org.apache.hadoop.hbase.io.compress.Compression.Algorithm;
++import org.apache.hadoop.hbase.regionserver.BloomType;
+ 
+ public class BConstants {
+ 	private static final String DFS_SHORTCIRCUIT = "dfs.client.read.shortcircuit";
+@@ -61,7 +61,7 @@
+ 					DataBlockEncoding.PREFIX.name());
+ 			put(HFileConf.COMPRESSION_CONF_KEY.getName(),
+ 					Algorithm.SNAPPY.getName());
+-			put(HFileConf.HFILEOUTPUTFORMAT_BLOCKSIZE.getName(), HFile.DEFAULT_BLOCKSIZE + "");
++			put(HFileConf.HFILEOUTPUTFORMAT_BLOCKSIZE.getName(), HConstants.DEFAULT_BLOCKSIZE + "");
+ 			put(HFileConf.HFILE_COMPRESSION.getName(),
+ 					Algorithm.SNAPPY.getName());
+ 		}
+diff -urN OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BulkLoadUtils.java NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BulkLoadUtils.java
+--- OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BulkLoadUtils.java	2014-10-19 11:50:13.344911451 +0800
++++ NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/common/BulkLoadUtils.java	2014-10-19 12:00:49.956883069 +0800
+@@ -1,8 +1,8 @@
+ package com.transwarp.hbase.bulkload.common;
+ 
+ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
+-import org.apache.hadoop.hbase.io.hfile.Compression.Algorithm;
+-import org.apache.hadoop.hbase.regionserver.StoreFile.BloomType;
++import org.apache.hadoop.hbase.io.compress.Compression.Algorithm;
++import org.apache.hadoop.hbase.regionserver.BloomType;
+ 
+ public class BulkLoadUtils {
+ 	public static Algorithm getCompressionTypeByString(String algorithmType) {
+diff -urN OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/ImportTextFile2HBase.java NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/ImportTextFile2HBase.java
+--- OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/ImportTextFile2HBase.java	2014-10-19 11:57:55.764890835 +0800
++++ NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/ImportTextFile2HBase.java	2014-10-19 12:00:49.956883069 +0800
+@@ -19,6 +19,7 @@
+ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+ import org.apache.hadoop.hbase.io.hfile.HFile;
+ import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat;
++import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2;
+ import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
+ import org.apache.hadoop.hbase.util.Bytes;
+ import org.apache.hadoop.io.Text;
+@@ -103,14 +104,12 @@
+ 		String inputFormat = conf.get(BConstants.BulkLoadProps.INPUT_FORMAT
+ 				.getName());
+ 		String indexTableList = conf.get(BConstants.BulkLoadProps.INDEXTABLE_LIST.getName(), "");
+-		
+-
+     
+     if (!indexTableList.isEmpty()) {
+-      System.out.println("Use mapper : TextWithIndexMapper" );
++      System.out.println("Use mapper : TextWithIndexMapper");
+       job.setJarByClass(TextWithIndexMapper.class);
+       FileInputFormat.setInputPaths(job, inputDir);
+-     if (inputFormat.equalsIgnoreCase(BConstants.InputFormat.COMBINE_FILE
++      if (inputFormat.equalsIgnoreCase(BConstants.InputFormat.COMBINE_FILE
+           .getName())) {
+         job.setMapperClass(TextMultiFileInputWithIndexMapper.class);
+         job.setInputFormatClass(MultiFileInputFormat.class);
+@@ -119,7 +118,6 @@
+         job.setInputFormatClass(TextInputFormat.class);
+       }
+     } else {
+-      
+       if (inputFormat != null) {
+         // If the input format is CombineFile
+         if (inputFormat.equalsIgnoreCase(BConstants.InputFormat.COMBINE_FILE
+@@ -135,8 +133,8 @@
+           }
+         }
+         // If the input format is MultiHFile
+-        else if (inputFormat.equalsIgnoreCase(BConstants.InputFormat.MULTI_HFILE
+-            .getName())) {
++        else if (inputFormat
++            .equalsIgnoreCase(BConstants.InputFormat.MULTI_HFILE.getName())) {
+           job.setJarByClass(HFile2SecondaryIndexHFileMapper.class);
+           job.setMapperClass(HFile2SecondaryIndexHFileMapper.class);
+           job.setInputFormatClass(MultiHFileInputFormat.class);
+@@ -175,7 +173,7 @@
+ 			job.setMapOutputKeyClass(ImmutableBytesWritable.class);
+ 			job.setMapOutputValueClass(Text.class);
+ 			if (indexTableList.isEmpty()) {
+-			  HFileOutputFormat.configureIncrementalLoad(job, table);
++			  HFileOutputFormat2.configureIncrementalLoad(job, table, true);
+ 			} else {
+ 			  TranswarpHFileOutputFormat.configureIncrementalLoad(job, table);
+ 			}
+@@ -254,7 +252,7 @@
+ 									.get(BConstants.HFileConf.DATABLOCK_ENCODING_CONF_KEY
+ 											.getName())))
+ 					.setBlockCacheEnabled(conf.getBoolean(BConstants.BLOCKCACHE, true));
+-			int blocksize = conf.getInt(HFileConf.HFILEOUTPUTFORMAT_BLOCKSIZE.getName(), HFile.DEFAULT_BLOCKSIZE);
++			int blocksize = conf.getInt(HFileConf.HFILEOUTPUTFORMAT_BLOCKSIZE.getName(), HConstants.DEFAULT_BLOCKSIZE);
+ 			hcd.setBlocksize(blocksize);
+ 			htd.addFamily(hcd);
+ 		}
+@@ -299,7 +297,10 @@
+ 				isTest = true;
+ 			}
+ 		}
+-
++		
++		ImportTextFile2HBase.importData(args[0], isTest);
++		
++		/*
+ 		Configuration conf = HBaseConfiguration.create();
+ 
+ 		Properties props = new Properties();
+@@ -326,8 +327,38 @@
+ 		} else {
+ 		  System.err.println("Check conf succ.");
+ 		}
++		*/
+ 		
+ 	}
++	
++	public static void importData(String path, boolean isTest) throws Exception {
++    Configuration conf = HBaseConfiguration.create();
++
++    Properties props = new Properties();
++    props.load(new FileInputStream(path));
++
++    if (BulkLoadChecker.checkProps(props)) {
++      System.out.println(BulkLoadChecker.hintInfo.toString());
++    } else {
++      System.out.println(BulkLoadChecker.errorInfo.toString());
++      System.exit(1);
++    }
++
++    // Initialize the configuration for bulk load
++    // Use the default value if the user don't set them in the
++    // conf.properties
++    initHBaseConf(conf, props);
++    initHFileConf(conf, props);
++    initBulkProps(props);
++    initBulkConf(conf);
++
++    if (!isTest) {
++      hbaseAdmin = new HBaseAdmin(conf);
++      runBulkLoad(conf);
++    } else {
++      System.err.println("Check conf succ.");
++    }
++  }
+ 
+ 	private static void initHBaseConf(Configuration conf, Properties props) {
+ 		for (String hbaseConfKey : BConstants.DEFAULT_HBASE_CONF.keySet()) {
+diff -urN OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/secondaryindex/MultiHFileInputFormat.java NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/secondaryindex/MultiHFileInputFormat.java
+--- OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/secondaryindex/MultiHFileInputFormat.java	2014-10-19 11:50:13.312911453 +0800
++++ NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/secondaryindex/MultiHFileInputFormat.java	2014-10-19 12:00:49.956883069 +0800
+@@ -15,6 +15,7 @@
+ import org.apache.hadoop.fs.FileStatus;
+ import org.apache.hadoop.fs.FileSystem;
+ import org.apache.hadoop.fs.Path;
++import org.apache.hadoop.hbase.Cell;
+ import org.apache.hadoop.hbase.HBaseConfiguration;
+ import org.apache.hadoop.hbase.HColumnDescriptor;
+ import org.apache.hadoop.hbase.HConstants;
+@@ -149,7 +150,7 @@
+ 	    }
+ 
+ 	    @Override
+-	    public boolean next(List<KeyValue> results) throws IOException {
++	    public boolean next(List<Cell> results) throws IOException {
+ 	      // TODO Auto-generated method stub
+ 	      return this.next(results, -1);
+ 	    }
+@@ -205,7 +206,7 @@
+ 	    }
+ 	    
+ 	    @Override
+-	    public boolean next(List<KeyValue> result, int limit) throws IOException {
++	    public boolean next(List<Cell> result, int limit) throws IOException {
+ 	      // TODO Auto-generated method stub
+ 	      boolean flag=false;
+ 	      KeyValue kv = this.storeHeap.peek();
+@@ -246,6 +247,24 @@
+ 				return false;
+ 			}
+ 
++      @Override
++      public boolean backwardSeek(KeyValue key) throws IOException {
++        // TODO Auto-generated method stub
++        return false;
++      }
++
++      @Override
++      public boolean seekToPreviousRow(KeyValue key) throws IOException {
++        // TODO Auto-generated method stub
++        return false;
++      }
++
++      @Override
++      public boolean seekToLastRow() throws IOException {
++        // TODO Auto-generated method stub
++        return false;
++      }
++
+ 	}
+ 
+ 	/**
+@@ -419,7 +438,7 @@
+ 	           
+ 	        HColumnDescriptor columnDesc=tableDesc.getFamily(family);
+ 	        HFileDataBlockEncoder dataBlockEncoder =
+-	          new HFileDataBlockEncoderImpl(columnDesc.getDataBlockEncodingOnDisk(), columnDesc.getDataBlockEncoding());
++	          new HFileDataBlockEncoderImpl(columnDesc.getDataBlockEncoding());
+ 	        KeyValue startKey = KeyValue.createFirstDeleteFamilyOnRow(split.getStartRow(),family);
+ 	        List<KeyValueScanner> familyScanners = new ArrayList<KeyValueScanner>();
+ 	        for (int i = 0; i < files.length; i++) {
+@@ -429,9 +448,14 @@
+ 	          }
+ 
+ 	          conf.setFloat("hfile.block.cache.size", 0);
++	          /*
+ 	          StoreFile.Reader reader =
+ 	              new StoreFile(fs, files[i].getPath(), conf, new CacheConfig(conf), columnDesc.getBloomFilterType(),
+ 	                  dataBlockEncoder).createReader();
++	                  */
++	          StoreFile.Reader reader =
++                new StoreFile(fs, files[i].getPath(), conf, new CacheConfig(conf),
++                    columnDesc.getBloomFilterType()).createReader();
+ 	          reader.loadFileInfo();
+ 	          reader.loadBloomfilter();
+ 	          this.readers.add(reader);
+@@ -476,7 +500,8 @@
+ 	      }
+ 	      rowKey.set(kv.getBuffer(),kv.getKeyOffset(),kv.getKeyLength());
+ 	      Result value=new Result(values); 
+-	      Writables.copyWritable(value, result);
++	      result.copyFrom(value);
++	      // Writables.copyWritable(value, result);
+ 	      return true;
+ 	    }
+ 	    
+diff -urN OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/withindex/TranswarpHFileOutputFormat.java NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/withindex/TranswarpHFileOutputFormat.java
+--- OldGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/withindex/TranswarpHFileOutputFormat.java	2014-10-19 11:50:13.356911451 +0800
++++ NewGeneralDataCopy/src/main/java/com/transwarp/hbase/bulkload/withindex/TranswarpHFileOutputFormat.java	2014-10-19 12:00:49.956883069 +0800
+@@ -30,8 +30,10 @@
+ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
+ import org.apache.hadoop.hbase.io.hfile.AbstractHFileWriter;
+ import org.apache.hadoop.hbase.io.hfile.CacheConfig;
+-import org.apache.hadoop.hbase.io.hfile.Compression;
++import org.apache.hadoop.hbase.io.compress.Compression;
+ import org.apache.hadoop.hbase.io.hfile.HFile;
++import org.apache.hadoop.hbase.io.hfile.HFileContext;
++import org.apache.hadoop.hbase.io.hfile.HFileContextBuilder;
+ import org.apache.hadoop.hbase.io.hfile.HFileDataBlockEncoder;
+ import org.apache.hadoop.hbase.io.hfile.HFileDataBlockEncoderImpl;
+ import org.apache.hadoop.hbase.io.hfile.NoOpDataBlockEncoder;
+@@ -39,7 +41,7 @@
+ import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
+ import org.apache.hadoop.hbase.regionserver.Store;
+ import org.apache.hadoop.hbase.regionserver.StoreFile;
+-import org.apache.hadoop.hbase.regionserver.StoreFile.BloomType;
++import org.apache.hadoop.hbase.regionserver.BloomType;
+ import org.apache.hadoop.hbase.util.Bytes;
+ import org.apache.hadoop.io.NullWritable;
+ import org.apache.hadoop.io.SequenceFile;
+@@ -49,6 +51,8 @@
+ import org.apache.hadoop.mapreduce.TaskAttemptContext;
+ import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
+ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
++import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
++import org.apache.hadoop.hbase.regionserver.HStore;
+ 
+ import com.transwarp.hbase.bulkload.TextSortReducer;
+ import com.transwarp.hbase.bulkload.common.BConstants;
+@@ -99,19 +103,10 @@
+     final Map<byte[], String> blockSizeMap = createFamilyBlockSizeMap(conf);
+ 
+     String dataBlockEncodingStr = conf.get(DATABLOCK_ENCODING_CONF_KEY);
+-    final HFileDataBlockEncoder encoder;
+     if (dataBlockEncodingStr == null) {
+-      encoder = NoOpDataBlockEncoder.INSTANCE;
+-    } else {
+-      try {
+-        encoder = new HFileDataBlockEncoderImpl(
+-            DataBlockEncoding.valueOf(dataBlockEncodingStr));
+-      } catch (IllegalArgumentException ex) {
+-        throw new RuntimeException(
+-            "Invalid data block encoding type configured for the param "
+-                + DATABLOCK_ENCODING_CONF_KEY + " : " + dataBlockEncodingStr);
+-      }
++      dataBlockEncodingStr = HColumnDescriptor.DEFAULT_DATA_BLOCK_ENCODING;
+     }
++    final DataBlockEncoding dataBlockEncoding = DataBlockEncoding.valueOf(dataBlockEncodingStr);
+ 
+     return new RecordWriter<ImmutableBytesWritable, KeyValue>() {
+       // Map of each table Map of families to writers and how much has been output on the writer.
+@@ -225,18 +220,31 @@
+           bloomType = BloomType.valueOf(bloomTypeStr);
+         }
+         String blockSizeString = blockSizeMap.get(family);
+-        int blockSize = blockSizeString == null ? HFile.DEFAULT_BLOCKSIZE
++        int blockSize = blockSizeString == null ? HConstants.DEFAULT_BLOCKSIZE
+             : Integer.parseInt(blockSizeString);
+         Configuration tempConf = new Configuration(conf);
+         tempConf.setFloat(HConstants.HFILE_BLOCK_CACHE_SIZE_KEY, 0.0f);
++        
++        HFileContext hFileContext = new HFileContextBuilder()
++        //.withIncludesMvcc(includeMVCCReadpoint)
++        //.withIncludesTags(includesTag)
++        .withCompression(AbstractHFileWriter.compressionByName(compression))
++        //.withCompressTags(family.shouldCompressTags())
++        .withChecksumType(HStore.getChecksumType(conf))
++        .withBytesPerCheckSum(HStore.getBytesPerChecksum(conf))
++        .withBlockSize(blockSize)
++        .withHBaseCheckSum(true)
++        .withDataBlockEncoding(dataBlockEncoding)
++        //.withEncryptionContext(cryptoContext)
++        .build();
++        
+         wl.writer = new StoreFile.WriterBuilder(conf,
+-            new CacheConfig(tempConf), fs, blockSize)
++            new CacheConfig(tempConf), fs)
+             .withOutputDir(familydir)
+-            .withCompression(AbstractHFileWriter.compressionByName(compression))
+-            .withBloomType(bloomType).withComparator(KeyValue.COMPARATOR)
+-            .withDataBlockEncoder(encoder)
+-            .withChecksumType(Store.getChecksumType(conf))
+-            .withBytesPerChecksum(Store.getBytesPerChecksum(conf)).build();
++            .withBloomType(bloomType)
++            .withComparator(KeyValue.COMPARATOR)
++            .withFileContext(hFileContext)
++            .build();
+ 
+         writers.put(family, wl);
+         return wl;
+@@ -452,6 +460,7 @@
+     writePartitions(conf, partitionsPath, startKeys);
+     partitionsPath.makeQualified(fs);
+ 
++    /*
+     URI cacheUri;
+     try {
+       // Below we make explicit reference to the bundled TOP. Its cheating.
+@@ -466,6 +475,11 @@
+     }
+     DistributedCache.addCacheFile(cacheUri, conf);
+     DistributedCache.createSymlink(conf);
++    */
++    
++    // configure job to use it
++    job.setPartitionerClass(TotalOrderPartitioner.class);
++    TotalOrderPartitioner.setPartitionFile(job.getConfiguration(), partitionsPath);
+ 
+     // Set compression algorithms based on column families
+     configureCompression(table, conf);
